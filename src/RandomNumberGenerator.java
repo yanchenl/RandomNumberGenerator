@@ -1,5 +1,9 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 
@@ -42,7 +46,7 @@ public class RandomNumberGenerator extends JFrame {
     public class SubmitMonitor implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             inputNumber = getInput();
-//            System.out.println(inputNumber);
+            // System.out.println(inputNumber);
             // begin to run the following code
             // double start = System.currentTimeMillis();
             RandomGenerator rg = new RandomGenerator();
@@ -50,21 +54,43 @@ public class RandomNumberGenerator extends JFrame {
             int countOne = 0;
             int countZero = 0;
             int total = 0;
+            File file = new File("Result.csv");
 
             while (total < max) {
                 long number = rg.getLongSeed();
+                // long time = System.nanoTime();
+                // System.out.println(time);
+                // number = number * time;
                 // System.out.println(number);
 
                 String binary = DecimalToBinary(number);
-                binary = binary.substring(1);
-                // System.out.println(binary);
+                if (binary.length() > 50) {
+                    binary = binary.substring(1, 51);
+                } else {
+                    continue;
+                }
+//                System.out.println(binary);
+
+                try {
+                    file.createNewFile();
+                    FileOutputStream fos = new FileOutputStream(file, true);
+                    for (int i = 0; i < 50; i++) {
+                        StringBuffer sb = new StringBuffer();
+                        sb.append(binary.substring(i, i + 1));
+                        sb.append(",");
+                        fos.write(sb.toString().getBytes());
+                    }
+                    fos.close();
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
 
                 countOne += countNum(binary, "1");
                 countZero += countNum(binary, "0");
                 total += binary.length();
             }
-            // System.out.println(countOne);
-            // System.out.println(countZero);
             Double ratio = (double) countOne / (double) (countOne + countZero);
             // System.out.println(ratio);
             // double end = System.currentTimeMillis();
@@ -115,9 +141,10 @@ public class RandomNumberGenerator extends JFrame {
     public static void main(String[] args) throws InterruptedException {
         new RandomNumberGenerator();
     }
-    
+
     class RandomGenerator {
         public long getLongSeed() {
+            //Using SecureRandom to read OS-provided entropy
             SecureRandom sec = new SecureRandom();
             byte[] sbuf = sec.generateSeed(8);
             ByteBuffer bb = ByteBuffer.wrap(sbuf);
