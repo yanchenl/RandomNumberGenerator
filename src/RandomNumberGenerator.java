@@ -12,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
+import java.util.Random;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -71,6 +73,8 @@ public class RandomNumberGenerator extends JFrame {
             File file = new File("Result.csv");
 
             while (total < max) {
+                
+                //generate seed according to the entropy of the system
                 long number = rg.getLongSeed();
                 // long time = System.nanoTime();
                 // System.out.println(time);
@@ -79,11 +83,14 @@ public class RandomNumberGenerator extends JFrame {
                 long number2 = System.nanoTime();
                 String binary2 = DecimalToBinary(number2);
                 // System.out.println(binary2);
-                binary2 = binary2.substring(32, 42);
+                
+                //determine the length of each part
+                int random = new Random().nextInt(10) + 1;
+                binary2 = binary2.substring(32, 32 + random);
 
                 String binary1 = DecimalToBinary(number);
                 if (binary1.length() > 50) {
-                    binary1 = binary1.substring(1, 41);
+                    binary1 = binary1.substring(1, (51 - random));
                 } else {
                     continue;
                 }
