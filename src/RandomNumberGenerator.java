@@ -1,3 +1,9 @@
+/*
+ * Author: Yancheng Liu
+ * Date: 11/18/2014
+ * Project: Random Number Generator
+ */
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -6,10 +12,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
 public class RandomNumberGenerator extends JFrame {
@@ -17,25 +23,32 @@ public class RandomNumberGenerator extends JFrame {
     private JFrame frame = new JFrame("Random Number Generator");
     private JButton submit = new JButton("Run");
     private JLabel inLabel1 = new JLabel("Number");
-    private JLabel inLabel2 = new JLabel("1/(1+0)");
+    private JLabel inLabel2 = new JLabel("Progress");
+    private JLabel inLabel3 = new JLabel("1/(1+0)");
     SubmitMonitor submitMonitor = new SubmitMonitor();
     TextMonitor textMonitor = new TextMonitor();
     private JTextField data1 = new JTextField(10);
-    private JTextField data2 = new JTextField(10);
+    private JTextField data3 = new JTextField(10);
+    private JProgressBar pro = new JProgressBar();
     String inputNumber;
 
     public RandomNumberGenerator() {
         this.frame.setLayout(null);
-        this.frame.setSize(400, 150);
+        this.frame.setSize(400, 200);
         this.inLabel1.setBounds(30, 25, 80, 20);
         this.inLabel2.setBounds(30, 50, 80, 20);
-        this.submit.setBounds(250, 90, 80, 20);
+        this.inLabel3.setBounds(30, 75, 80, 20);
+        this.submit.setBounds(250, 100, 80, 20);
         this.data1.setBounds(100, 25, 200, 20);
-        this.data2.setBounds(100, 50, 200, 20);
+        this.pro.setBounds(100, 50, 200, 20);
+        this.data3.setBounds(100, 75, 200, 20);
         this.frame.add(inLabel1);
+        this.pro.setStringPainted(true);
         this.frame.add(inLabel2);
+        this.frame.add(inLabel3);
         this.frame.add(data1);
-        this.frame.add(data2);
+        this.frame.add(pro);
+        this.frame.add(data3);
         this.frame.add(submit);
         this.frame.setVisible(true);
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,6 +67,7 @@ public class RandomNumberGenerator extends JFrame {
             int countOne = 0;
             int countZero = 0;
             int total = 0;
+            double progress = 0;
             File file = new File("Result.csv");
 
             while (total < max) {
@@ -62,14 +76,19 @@ public class RandomNumberGenerator extends JFrame {
                 // System.out.println(time);
                 // number = number * time;
                 // System.out.println(number);
+                long number2 = System.nanoTime();
+                String binary2 = DecimalToBinary(number2);
+                // System.out.println(binary2);
+                binary2 = binary2.substring(32, 42);
 
-                String binary = DecimalToBinary(number);
-                if (binary.length() > 50) {
-                    binary = binary.substring(1, 51);
+                String binary1 = DecimalToBinary(number);
+                if (binary1.length() > 50) {
+                    binary1 = binary1.substring(1, 41);
                 } else {
                     continue;
                 }
-//                System.out.println(binary);
+                // System.out.println(binary);
+                String binary = binary1.concat(binary2);
 
                 try {
                     file.createNewFile();
@@ -90,15 +109,21 @@ public class RandomNumberGenerator extends JFrame {
                 countOne += countNum(binary, "1");
                 countZero += countNum(binary, "0");
                 total += binary.length();
+                progress = 100 * total / (double) max;
+
+                System.out.println(progress);
+
+                pro.setValue((int) progress);
             }
             Double ratio = (double) countOne / (double) (countOne + countZero);
             // System.out.println(ratio);
             // double end = System.currentTimeMillis();
             // System.out.println("time is : " + (end - start));
 
-            data2.setText(ratio.toString());
+            data3.setText(ratio.toString());
         }
 
+        // function countNum() return the length of the binary number
         private int countNum(String binary, String num) {
             int count = 0;
             for (int i = 0; i < binary.length(); i++) {
@@ -109,6 +134,7 @@ public class RandomNumberGenerator extends JFrame {
             return count;
         }
 
+        // function DecimalToBinary transfer the decimal to binary
         private String DecimalToBinary(long number) {
             if (number == 0) {
                 return "0";
@@ -127,6 +153,7 @@ public class RandomNumberGenerator extends JFrame {
 
     }
 
+    // TextMonitor monitor the user's input
     public class TextMonitor implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String d1 = data1.getText();
@@ -144,10 +171,12 @@ public class RandomNumberGenerator extends JFrame {
 
     class RandomGenerator {
         public long getLongSeed() {
-            //Using SecureRandom to read OS-provided entropy
-            SecureRandom sec = new SecureRandom();
-            byte[] sbuf = sec.generateSeed(8);
-            ByteBuffer bb = ByteBuffer.wrap(sbuf);
+            // Using SecureRandom to read OS-provided entropy
+            SecureRandom sr = new SecureRandom();
+            byte[] seed = sr.generateSeed(8);
+            // System.out.println(seed);
+            // create a buffer object around the byte array
+            ByteBuffer bb = ByteBuffer.wrap(seed);
             return bb.getLong();
         }
     }
